@@ -11,6 +11,9 @@ import sip
 
 from guihelper import utils
 reload(utils)
+
+from guihelper import guilist
+reload(guilist)
 # from .. import utils
 
 DEBUG=1
@@ -157,7 +160,7 @@ def build_menu(path):
     mc.menuItem(l='Flags', c=lambda *x: print_flags(path))
     mc.menuItem(l='Print Path', c=lambda *x: print_path(path))
     mc.menuItem(d=1)
-    mc.menuItem(l='guiList', c=lambda *x: print_path(path))
+    mc.menuItem(l='guiList', c=lambda *x: guilist.main())
     mc.menuItem(l='Reveal in guiList', c=lambda *x: print_path(path))
     mc.menuItem(d=1)
     mc.menuItem(l='Parent', c=lambda *x: print_path(path))
