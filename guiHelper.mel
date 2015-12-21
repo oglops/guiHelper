@@ -121,7 +121,11 @@ tokenize $path "|" $pathArray;
 string $pathString = "{";
 for	($tok in $pathArray)
 	{$pathString += ("\"" + $tok + "\", ");}
+
 $pathString = (`substring $pathString 1 (size($pathString) -2)` + "}");
+// print "===========\n";
+// print($pathString);
+
 
 	menuItem -l $pathArray[(`size $pathArray`-1)] -c ("print " + $pathArray[(`size $pathArray`-1)]);
 
@@ -169,24 +173,51 @@ $menuCommand = ("guiHelper_siblings 0 0 " + $pathString );
 
 }
 
+global proc debug(string $in)
+{
+
+	print ("Debug: "+$in+"\n");
+
+}
+
+global proc debugarray(string $in[])
+{
+
+	print "Debug:\n";
+	// print(stringArrayToString($in,", "));
+	print $in;
+	print "\n";
+
+}
+
+
 
 global proc string guiHelper_printFlags(string $control)
 { 
 // $control can be path to control or just the name of the control
+ print "in guiHelper_printFlags\n";
+ print ($control+"\n");
 
 string $guiHelper_controlType = `guiHelper_controlType $control`;
+debug($guiHelper_controlType);
 string $help = `help $guiHelper_controlType`;
+
+debug($guiHelper_controlType);
+
 
 string $tok[];
 tokenize $help "\n\r" $tok;
 string $flag[];
+
+debugarray($tok);
+
 
 string $controlTok[];
 tokenize $control "|" $controlTok;
 string $return;
 string $flagName;
 
-for	($i=4; $i<size($tok); $i++)
+for	($i=4; $i<size($tok)-1; $i++)
 	{tokenize $tok[$i] " " $flag;
 
 	if 	( $flag[1]!="-defineTemplate"
@@ -203,15 +234,61 @@ for	($i=4; $i<size($tok); $i++)
 		 	{$flagName += ".";}
 		 
 		if	($flag[1]=="-popupMenuArray" //if return is array
-		||	 $flag[1]=="-childArray")//if return is array
-		 	{string $flagQuery[]
+		||	 $flag[1]=="-childArray" //if return is array
+		
+		// ||	$flag[1]=="-attachPosition"
+		// ||	$flag[1]=="-attachOppositeForm"
+		// ||	$flag[1]=="-attachOppositeControl"
+		|| $flag[1]=="-tabLabel"
+		|| $flag[1]=="-tabLabelIndex"
+		|| $flag[1]=="-toolArray"
+		|| $flag[1]=="-toolImage1"
+		)
+		 	{
+		 		debug($flag[1]);
+
+
+		 		string $flagQuery[]
 			 		= `eval ($guiHelper_controlType + " -q " + $flag[1] + " " + $control)`;
 		 	 
 		 	 if  (`size $flagQuery`>0)
 		 	 	$return += 
 		 	 		($flagName + $flagQuery[0] + " " + $flagQuery[1] + " " + $flagQuery[2] + " " + $flagQuery[3] + " " + $flagQuery[4] + " " + $flagQuery[5] + "\n");}
 		
-		else	{string $flagQuery 
+		// this is new float[]
+		else if( $flag[1]=="-backgroundColor" 
+		||	$flag[1]=="-overlayLabelBackColor"
+		||	$flag[1]=="-overlayLabelColor"
+		) // returns float array) 	
+		{
+			float $flagQuery[]
+		 		= `eval ($guiHelper_controlType + " -q " + $flag[1] + " " + $control)`;
+	 		if  (`size $flagQuery`>0)
+		 	 	$return += 
+		 	 		($flagName + $flagQuery[0] + " " + $flagQuery[1] + " " + $flagQuery[2]  + "\n");
+		}
+		// // this is new string[]
+		// else if( $flag[1]=="-tabLabel" 
+
+		// ) // returns float array) 	
+		// {
+		// 	float $flagQuery[]
+		//  		= `eval ($guiHelper_controlType + " -q " + $flag[1] + " " + $control)`;
+	 // 		if  (`size $flagQuery`>0){
+	 // 			$return +=$flagName;
+	 // 			for($i=0;$i<`size $flagQuery`;$i++)
+		//  	 		$return += $flagQuery[$i] + " ";
+
+		//  	 	$return += "\n";
+	 // 		}
+		// }
+
+		else	{
+
+			debug($flag[1]);
+
+
+			string $flagQuery 
 					= `eval ($guiHelper_controlType + " -q " + $flag[1] + " " + $control)`;
 			 if  (`size $flagQuery`>0)
 			 	{$return += ($flagName + $flagQuery + "\n");}
@@ -281,13 +358,17 @@ for	($listItem in $allListItems)
 
 global proc guiList(string $pathList)
 {
+
+print "in guiList\n";
+debug($pathList);
+
 if	(`window -ex guiList_listWin`)
 	{deleteUI guiList_listWin;}
 window -title "guiList" guiList_listWin;
    string $form = `formLayout -numberOfDivisions 100`;
 global string $gguiList_scrollList;
 $gguiList_scrollList = `textScrollList
-	-allowAutomaticSelection 1
+	// -allowAutomaticSelection 1
 	-allowMultiSelection 1
 	-selectCommand guiHelper_printItemName
 	-doubleClickCommand guiList_showHideItem
@@ -329,8 +410,6 @@ string $children[];
 if	(`layout -q -ex $patH[1]`)
 	{$children = `layout -q -ca $patH[1]`;}
 else	{$children = `layout -q -ca $patH[0]`;}
-
-
 
 
 string $depth00 = "  ";
@@ -680,7 +759,7 @@ if (`scriptTable                  -q -ex $control`) $guiHelper_controlType = "sc
 if (`scrollField                  -q -ex $control`) $guiHelper_controlType = "scrollField"	;
 if (`separator                    -q -ex $control`) $guiHelper_controlType = "separator"		;
 if (`shelfButton                  -q -ex $control`) $guiHelper_controlType = "shelfButton"	;
-if (`shellField                   -q -ex $control`) $guiHelper_controlType = "shellField"		;
+// if (`shellField                   -q -ex $control`) $guiHelper_controlType = "shellField"		;
 if (`soundControl                 -q -ex $control`) $guiHelper_controlType = "soundControl"	;
 if (`swatchDisplayPort            -q -ex $control`) $guiHelper_controlType = "swatchDisplayPort"	;
 if (`switchTable                  -q -ex $control`) $guiHelper_controlType = "switchTable"	;
@@ -700,6 +779,7 @@ if (`toolCollection               -q -ex $control`) $guiHelper_controlType = "to
 
 if (`attrEnumOptionMenu           -q -ex $control`) $guiHelper_controlType = "attrEnumOptionMenu"	;
 if (`columnLayout                 -q -ex $control`) $guiHelper_controlType = "columnLayout"	;
+if (`flowLayout                 -q -ex $control`) $guiHelper_controlType = "flowLayout"	;
 if (`formLayout                   -q -ex $control`) $guiHelper_controlType = "formLayout"		;
 if (`frameLayout                  -q -ex $control`) $guiHelper_controlType = "frameLayout"	;
 if (`gridLayout                   -q -ex $control`) $guiHelper_controlType = "gridLayout"		;
@@ -735,7 +815,7 @@ if (`panel                        -q -ex $control`) $guiHelper_controlType = "pa
 if (`panelConfiguration           -q -ex $control`) $guiHelper_controlType = "panelConfiguration"	;
 if (`panelHistory                 -q -ex $control`) $guiHelper_controlType = "panelHistory"	;
 if (`scriptedPanel                -q -ex $control`) $guiHelper_controlType = "scriptedPanel"	;
-if (`setEditor                    -q -ex $control`) $guiHelper_controlType = "setEditor"		;
+// if (`setEditor                    -q -ex $control`) $guiHelper_controlType = "setEditor"		;
 if (`spreadSheetEditor            -q -ex $control`) $guiHelper_controlType = "spreadSheetEditor"	;
 
 
